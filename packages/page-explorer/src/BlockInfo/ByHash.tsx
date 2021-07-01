@@ -55,8 +55,8 @@ function BlockByHash({ className = '', error, value }: Props): React.ReactElemen
         mountedRef.current && setState(transformResult(result));
 
         const number = result[2]?.number.unwrap().toNumber();
-        var LightClientURI = 'https://polygon-da-light.matic.today/v1/json-rpc';
-        
+        var LightClientURI = 'https://polygon-da-light.matic.today/v1/confidence';
+
         var url = new URL(window.location.href);
         let searchParams = new URLSearchParams(url.search);
         var getParam = searchParams.get("light");
@@ -68,36 +68,17 @@ function BlockByHash({ className = '', error, value }: Props): React.ReactElemen
           LightClientURI = savedLcUri;
         }
         console.log('Using Light Client at ', LightClientURI);
-        
-        axios.post(LightClientURI,
-          {
-            "id": 1,
-            "jsonrpc": "2.0",
-            "method": "get_blockConfidence",
-            "params": { number }
-          },
-          {
-            headers: {
-              "Content-Type": "application/json"
-            }
-          }
-        ).then(v => {
-          console.log(v);
 
+        axios.get(`${LightClientURI}/${number}`).then(v => {
           if (v.status != 200) {
-
             setConfidence('ℹ️ Make sure Light Client runs on ' + LightClientURI);
             return;
-
           }
 
-          setConfidence(v.data.result.confidence);
-
-        }).catch(_ => {
-
+          setConfidence(v.data.confidence);
+        }).catch(e => {
           setConfidence('ℹ️ Make sure Light Client runs on ' + LightClientURI);
-          console.log('Light client: Called, but failed');
-
+          console.error(`Light client called, but failed: ${e}`);
         });
 
       })
